@@ -1,3 +1,9 @@
+"""
+Created -simulating solvent evapuration -spin0coating
+@author: KL WOON
+"""
+
+
 import subprocess
 import time
 from shutil import copyfile
