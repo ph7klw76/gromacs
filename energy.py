@@ -1,3 +1,9 @@
+"""
+Created on Mon May 17 11:03:04 2021
+Gromac -simulating vacuum deposition
+@author: KL WOON
+"""
+
 import subprocess
 import time
 from shutil import copyfile
