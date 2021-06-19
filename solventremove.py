@@ -36,7 +36,7 @@ def compile(job):
     if job=='nvt':
         towrite='mpirun -np 2 gmx_mpi grompp -f nvt.mdp -c md.gro -r md.gro -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'
     if job=='npt':
-        towrite='mpirun -np 2 gmx_mpi grompp -f npt.mdp -c nvt.gro -r nvt.gro -t md.cpt -p complex2.top -o npt.tpr -n index.ndx -maxwarn 3'
+        towrite='mpirun -np 2 gmx_mpi grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p complex2.top -o npt.tpr -n index.ndx -maxwarn 3'
     if job=='md':
         towrite='mpirun -np 2 gmx_mpi grompp -f md.mdp -c npt.gro -r npt.gro -t npt.cpt -p complex2.top -o md.tpr -n index.ndx -maxwarn 3'
     f3.write(towrite)
@@ -171,6 +171,7 @@ while len(indexofsolvent)!=0:
     runjob('md',i)
     time.sleep(600)
     done=check_run_status()
+    i=+1
 
 
 
