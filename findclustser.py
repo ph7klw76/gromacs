@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jun 22 14:16:30 2021
-finding nearest cluster given a molecule in gromac MD
+finding the nearest pair in a molecular cluster in gromac MD
 @author: user
 """
 import numpy as np
