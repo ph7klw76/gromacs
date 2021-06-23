@@ -1,3 +1,10 @@
+"""
+Created on Wed Jun  9 13:40:27 2021
+VACUUM DEPOSITION OF TWO RANDOMLY SELECTED MOLECULES
+@author: KL WOON
+"""
+
+
 import subprocess
 import time
 from shutil import copyfile
