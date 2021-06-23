@@ -151,7 +151,7 @@ indexofsolvent=indexing_solvent(filepath,solventnoatom,residue)
 i=0
 while len(indexofsolvent)!=0:
     indexofsolvent=remove_solvent(filetoread,filetowrite,indexofsolvent,residue,solventnoatom)
-    time.sleep(10)
+    time.sleep(200)
     OCS=find_no_solvent_molecule(filepath,solventnoatom)
     create_top(OCS)
     subprocess.run(['sbatch', './index.sh'])
