@@ -459,14 +459,12 @@ def hasthemoleculedock(file,x1,y1,z1,noatom):
     return mind<0.4
 
 def checkerror(line):
-    with open('./'+str(line)+'.err','r') as f10:
-        for line in (f10.readlines()):
-            if 'Fatal error:' in line:
-                return True
-                sys.exit()
-            else:
-                return False
+    f10= open('./'+str(line)+'.err','r')
+    for i,line in enumerate(f10):
+        if 'Fatal error:' in line:
+            sys.exit()
     f10.close()
+
 
 def choicemolecule():
     moleculeList = ['LS12','mCBD']
