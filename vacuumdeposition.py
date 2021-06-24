@@ -407,7 +407,6 @@ def findxyzlastmolecule(filepath,noatom):
     x1=x[minz_index]
     y1=y[minz_index]
     z1=minz
-    print(x[minz_index], y[minz_index],minz)
     return x1,y1,z1
 
 def finddistance(x1,y1,z1,x2,y2,z2):
@@ -522,12 +521,10 @@ def append_topology(grofilein,toptoappend,wheretostartfrom):
                 column0=line[0]
                 column0=re.split('(\d+)',column0)
                 size=len(column0)
-                molecule_no=column0[1:2][0]
                 print(column0[1:2][0])
                 resid=''
                 for ii in range(2,size):
                     resid =resid+str(column0[ii:ii+1][0])
-                    print(resid)
                 mylist=mylist+[(molecule_no,resid)] 
     mylist = list(dict.fromkeys(mylist))
     copyfile('./complex.top', './'+str(toptoappend))
