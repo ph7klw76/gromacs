@@ -584,8 +584,7 @@ ferror=open('./error.txt','w') # for testing
 
 while goterror==False:  #
     for i in range(900): 
-        i=100+i   # for testing
-        if i%100==0:
+        if i%100==0 and i!=0:
             relaxation(i)  
         molecule,sizeofmolecule=choicemolecule()
         sizeofmolecule=int(sizeofmolecule)
