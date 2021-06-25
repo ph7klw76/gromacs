@@ -313,7 +313,7 @@ def createvelocityandfile(filepath,tran_z,noatom,column0,T,molecule):
                         mynum=1401
                     if column0!='700GRA':
                         if 'LS12' in column0:          # to split the string, u dont know whether it is LS12 or what
-                            mysplit='LS12'
+                            mysplit='LS12'  # generalize
                         if 'mCBD' in column0:
                             mysplit='mCBD'
                         mynum=column0.replace(mysplit,'')
