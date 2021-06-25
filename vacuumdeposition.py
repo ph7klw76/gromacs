@@ -85,7 +85,7 @@ def rerun(norerun):
 
 def create_nvtfile(resid_1, resid_2,norerun):
     if norerun==0:
-        copyfile('./nvt-original.mdp', './nvt-write.mdp')
+        copyfile('./nvt-original.mdp', './nvt-write.mdp')  ###
     if norerun!=0 and norerun <3:
         copyfile('./nvt-original2.mdp', './nvt-write.mdp')
     if 6 > norerun >= 3:
