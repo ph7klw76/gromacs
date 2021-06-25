@@ -17,7 +17,7 @@ import sys
 
 def check_run_status():
     time.sleep(10)
-    read_file=open('./50mCBD-auto.out') # jobname
+    read_file=open('./50mCBD-auto.out') # jobname  need to change to auto find
     for i, line in enumerate(read_file):
         job_id=line.split()[3]
     check_status='squeue -h -j '+ str(job_id)
