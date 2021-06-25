@@ -61,7 +61,7 @@ def compile():
     copyfile('./go.sh', './compile.sh')
     time.sleep(2)
     f3 = open('./compile.sh', 'a+')
-    towrite='mpirun -np 2 gmx_mpi grompp -f nvt.mdp -c tobecopy.gro -r tobecopy.gro -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'
+    towrite='mpirun -np 2 gmx_mpi grompp -f nvt.mdp -c tobecopy.gro -r tobecopy.gro -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'  #
     f3.write(towrite)
     f3.close()
     time.sleep(2)
@@ -71,11 +71,11 @@ def rerun(norerun):
     time.sleep(2)
     f3 = open('./rerun.sh', 'a+')
     if norerun < 3:
-        towrite='mpirun -np 2 gmx_mpi grompp -f nvt2.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'
+        towrite='mpirun -np 2 gmx_mpi grompp -f nvt2.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'  #
     if 6 > norerun >= 3:
-        towrite='mpirun -np 2 gmx_mpi grompp -f nvt3.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'
+        towrite='mpirun -np 2 gmx_mpi grompp -f nvt3.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'  #
     if norerun >= 6:
-        towrite='mpirun -np 2 gmx_mpi grompp -f nvt4.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'
+        towrite='mpirun -np 2 gmx_mpi grompp -f nvt4.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'   #
     f3.write(towrite)
     f3.close()
     fN=open('./N.txt','a')
@@ -556,16 +556,16 @@ def relaxation(i):
         subprocess.run(['sbatch', './compile400K.sh'])
         time.sleep(5)
         job_name=get_job_name('compile400K.sh')
-        goterror=checkerror(job_name)
+        checkerror(job_name)
         subprocess.run(['sbatch', './run400K.sh'])
         time.sleep(10)
         job_name=get_job_name('run400K.sh')
-        goterror=checkerror(job_name)
+        checkerror(job_name)
         done=check_run_status()
         subprocess.run(['sbatch', './compilecool.sh'])
         time.sleep(5)
         job_name=get_job_name('compilecool.sh')
-        goterror=checkerror(job_name)
+        checkerror(job_name)
         subprocess.run(['sbatch', './runcool.sh'])
         time.sleep(10)
         job_name=get_job_name('runcool.sh')
@@ -582,7 +582,7 @@ fN.close()
 ferror=open('./error.txt','w') # for testing
 
 
-while goterror==False:
+while goterror==False:  #
     for i in range(900): 
         i=100+i   # for testing
         if i%100==0:
@@ -619,13 +619,13 @@ while goterror==False:
         time.sleep(5)
         make_python_index('tobecopy.gro') #
         time.sleep(5)  #
-        subprocess.run(['sbatch', './index.sh'])
+        subprocess.run(['sbatch', './index.sh'])   #####
         done=check_run_status()
         compile()
         subprocess.run(['sbatch', './compile.sh'])
         time.sleep(5)
         job_name=get_job_name('compile.sh')
-        goterror=checkerror(job_name)
+        checkerror(job_name)
         time.sleep(5)
         if i%100!=0:
             subprocess.run(['sbatch', './test.sh'])
@@ -646,12 +646,12 @@ while goterror==False:
             subprocess.run(['sbatch', './rerun.sh'])
             time.sleep(5)
             job_name=get_job_name('rerun.sh')
-            goterror=checkerror(job_name)
+            checkerror(job_name)
             subprocess.run(['sbatch', './test.sh'])
             time.sleep(100)
             done=check_run_status()
             job_name=get_job_name('test.sh')
-            goterror=checkerror(job_name)
+            checkerror(job_name)
             x1,y1,z1=findxyzlastmolecule('./nvt.gro',sizeofmolecule) #size of molecule
             mind=hasthemoleculedock('./nvt.gro',x1,y1,z1,sizeofmolecule) #size of molecule
             if norerun > 12:
