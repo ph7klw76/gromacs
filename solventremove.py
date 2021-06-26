@@ -114,9 +114,8 @@ def write_new_file(filetoread,filetowrite,solventtoremove, residue,solventnoatom
     index_toberemoved=solventtoremove
     a_file=open(filetoread,'r')
     lines=a_file.readlines()
-    total_atom=int(lines[1])
-    lines[1]=str(total_atom-int(solventnoatom))+'\n'
-    new_file=open(filetowrite,'w')
+    new_file=open('./temp.gro','w')
+    Written=0
     for line in lines:
         boo=[]
         for item in index_toberemoved:
@@ -126,8 +125,21 @@ def write_new_file(filetoread,filetowrite,solventtoremove, residue,solventnoatom
                 boo.append(True)
         if all(boo)==True:
             new_file.write(line)
+            Written+=1
+    total_atom=Written-3
     a_file.close()
     new_file.close()
+    time.sleep(5)
+    a_file=open('./temp.gro','r')
+    lines=a_file.readlines()
+    lines[1]=str(total_atom)+'\n'
+    new_file=open(filetowrite,'w')
+    for line in lines:
+        new_file.write(line)
+    a_file.close()
+    new_file.close()
+    os.remove('./temp.gro')
+    
 
 
 def random_remove_solvent(filetoread,filetowrite,indexofsolvent,residue,noatom):  #######
