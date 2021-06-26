@@ -162,7 +162,7 @@ i=1
 f=open('./numberofmolecule.txt','a+')
 while len(indexofsolvent)!=0:
     indexofsolvent=random_remove_solvent(filetoread,filetowrite,indexofsolvent,residue,solventnoatom) 
-    time.sleep(600)
+    time.sleep(300)
     OCS=find_no_solvent_molecule(filepath,solventnoatom)
     f.write(str(OCS)+'/n')
     create_top(OCS)
