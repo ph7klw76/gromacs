@@ -2,11 +2,66 @@
 Created -simulating solvent evapuration -spin0coating
 @author: KL WOON
 """
-
-import numpy as np
-import random as rd
-from shutil import copyfile
+import subprocess
 import time
+from shutil import copyfile
+import numpy as np
+import math
+import os
+import random as rd
+
+
+
+def check_run_status():
+    time.sleep(100)
+    read_file=open('./spin-coating.out') # jobname
+    for i, line in enumerate(read_file):
+        job_id=line.split()[3]
+    check_status='squeue -h -j '+ str(job_id)
+    process=subprocess.run(check_status, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+    output = process.stdout
+    while output.__contains__(job_id):
+        time.sleep(100)
+        process=subprocess.run(check_status, shell=True, check=True, stdout=subprocess.PIPE, universal_newlines=True)
+        output = process.stdout 
+    return True
+
+def compile(job):
+    copyfile('./go.sh', './compile.sh')
+    time.sleep(2)
+    job=str(job)
+    f3 = open('./compile.sh', 'a+')
+    if job=='nvt':
+        towrite='mpirun -np 2 gmx_mpi grompp -f nvt.mdp -c md.gro -r md.gro -p complex2.top -o nvt.tpr -n index.ndx -maxwarn 3'
+    if job=='npt':
+        towrite='mpirun -np 2 gmx_mpi grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p complex2.top -o npt.tpr -n index.ndx -maxwarn 3'
+    if job=='md':
+        towrite='mpirun -np 2 gmx_mpi grompp -f md.mdp -c npt.gro -r npt.gro -t npt.cpt -p complex2.top -o md.tpr -n index.ndx -maxwarn 3'
+    f3.write(towrite)
+    f3.close()
+    time.sleep(5)
+
+def runjob(job,i):
+    copyfile('./test.sh', './run.sh')
+    time.sleep(2)
+    job=str(job)
+    f3 = open('./run.sh', 'a+')
+    if job=='nvt':
+        towrite='mpirun -np 16 gmx_mpi mdrun -v -deffnm nvt'
+    if job=='npt':
+        towrite='mpirun -np 16 gmx_mpi mdrun -v -deffnm npt'
+    if job=='md':
+        if i%10==0:
+             f3.close()
+             copyfile('./test2.sh', './run.sh')
+             time.sleep(2)
+             f3 = open('./run.sh', 'a+')
+        towrite='mpirun -np 16 gmx_mpi mdrun -v -deffnm md'
+    f3.write(towrite)
+    f3.close()
+    time.sleep(2)
+    subprocess.run(['sbatch', './run.sh'])
+
 
 def find_no_solvent_molecule(filepath,solventnoatom,residue):
     file=filepath
@@ -99,14 +154,20 @@ filetoread=filepath
 filetowrite=filepath
 indexofsolvent=indexing_solvent(filepath,solventnoatom,residue)
 
-i=0
+
+
+indexofsolvent=indexing_solvent(filepath,solventnoatom,residue)
+time.sleep(30)
+i=1
+f=open('./numberofmolecule.txt','a+')
 while len(indexofsolvent)!=0:
-    indexofsolvent=random_remove_solvent(filetoread,filetowrite,indexofsolvent,residue,solventnoatom)
-    time.sleep(60)
+    indexofsolvent=remove_solvent(filetoread,filetowrite,indexofsolvent,residue,solventnoatom) 
+    time.sleep(600)
     OCS=find_no_solvent_molecule(filepath,solventnoatom)
+    f.write(str(OCS)+'/n')
     create_top(OCS)
     subprocess.run(['sbatch', './index.sh'])
-    time.sleep(2)
+    time.sleep(3)
     compile('nvt')
     subprocess.run(['sbatch', './compile.sh'])
     runjob('nvt',i)
@@ -124,10 +185,3 @@ while len(indexofsolvent)!=0:
     done=check_run_status()
     i=+1
     time.sleep(60)
-
-
-
-
-
-
-
