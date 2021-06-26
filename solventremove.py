@@ -164,9 +164,6 @@ residue='9OC5'
 filepath='./md.gro'
 filetoread=filepath
 filetowrite=filepath
-indexofsolvent=indexing_solvent(filepath,solventnoatom,residue)
-
-
 
 indexofsolvent=indexing_solvent(filepath,solventnoatom,residue)
 time.sleep(30)
