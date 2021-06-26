@@ -534,8 +534,9 @@ def append_topology(grofilein,toptoappend,wheretostartfrom):
         which_resid_next=str(mylist[i][1])
         if resid_1 != which_resid_next:
             resid_2 = which_resid_next
-        towrite=str(mylist[i][1])+'   '+'1\n'
-        f2.write(towrite)
+        if '.' not in str(mylist[i][1]):
+            towrite=str(mylist[i][1])+'   '+'1\n'
+            f2.write(towrite)
     f2.close()
     return resid_1,resid_2
 
