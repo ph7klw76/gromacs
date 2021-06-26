@@ -80,7 +80,7 @@ def find_no_solvent_molecule(filepath,solventnoatom,residue):
     return OCS
 
 def create_top(OCS):  # this need to rethink
-    copyfile('E:/complex.top', 'E:/complex2.top')  # complex.top must have number of moecules without solvent
+    copyfile('./complex.top', './complex2.top')  # complex.top must have number of moecules without solvent
     time.sleep(2)
     f2 = open('E:/complex2.top', 'a+')
     f2.write(residue+'    '+str(OCS))
