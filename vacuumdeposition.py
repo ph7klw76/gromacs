@@ -124,6 +124,7 @@ def create_nvtfile(resid_1, resid_2,norerun):
     if 6 > norerun >= 3:
         if resid_2=='':
             towrite0='acc-grps                = '+resid_1+'\n'
+            towrite1='accelerate              = 0 0 -0.01'+'\n'
         if resid_2!='':
             towrite0='acc-grps                = '+resid_1+'_'+resid_2+'\n'
             towrite1='accelerate              = 0 0 -0.01'+'\n'
