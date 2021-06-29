@@ -33,7 +33,7 @@ def createnewmolecule(molecule):
     copyfile('./go.sh', './insert.sh')
     f1 = open('./insert.sh', 'a+')
     path='./position.dat'
-    x=str(rd.uniform(0.0, 8.4)) 
+    x=str(rd.uniform(0.0, 8.4))   # this need to change to take into accounnt of the size of the molecule and periodic strcuture
     y=str(rd.uniform(0.0, 8.3))
     with open(path, 'w') as f:
         f.write(x+' '+y+' '+'12.5'+'\n')
