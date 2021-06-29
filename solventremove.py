@@ -195,3 +195,5 @@ while len(indexofsolvent)!=0:
     done=check_run_status()
     i=+1
     time.sleep(60)
+    indexofsolvent=indexing_solvent(filepath,solventnoatom,residue)
+
