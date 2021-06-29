@@ -286,9 +286,9 @@ def createvelocityandfile(filepath,tran_z,noatom,column0,T,molecule):
                     column4=line[4]
                     column5=line[5]
                     if column4=='-0.000':  # buggy gromac files generate -0.000
-                        column4=='0.000'
+                        column4='0.000'
                     if column3=='-0.000':
-                        column3=='0.000'
+                        column3='0.000'
                     z.append(column5)
                     y.append(column4)
                     x.append(column3)
