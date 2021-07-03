@@ -183,6 +183,8 @@ while len(indexofsolvent)!=0:
     runjob('nvt',i)
     time.sleep(600)
     done=check_run_status()
+    newname='./md'+str(i)+'.gro'
+    os.rename('./md.gro',newname)
     compile('npt')
     subprocess.run(['sbatch', './compile.sh'])
     runjob('npt',i)
