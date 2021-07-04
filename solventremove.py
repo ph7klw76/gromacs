@@ -195,7 +195,7 @@ while len(indexofsolvent)!=0:
     runjob('md',i)
     time.sleep(600)
     done=check_run_status()
-    i=+1
+    i+=1
     time.sleep(60)
     indexofsolvent=indexing_solvent(filepath,solventnoatom,residue)
 
