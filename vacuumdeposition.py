@@ -40,7 +40,7 @@ def createnewmolecule(molecule):
     molecule1=str(molecule)+'.gro'
     time.sleep(2)
     moleculebox=str(molecule)+'_box.gro'
-    towrite='mpirun -np 2 gmx_mpi insert-molecules -f emptybox.gro -ci '+molecule1+' -ip position.dat -nmol 1 -rot xyz -o '+ moleculebox
+    towrite='mpirun -np 2 gmx_mpi insert-molecules -f emptybox.gro -ci '+molecule1+' -nmol 1 -box 8.62000 8.52000 25.00000 -rot xyz -o '+ moleculebox
     f1.write(towrite)
     f1.close()
     time.sleep(2)
