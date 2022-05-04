@@ -1,6 +1,6 @@
 import numpy as np
 from operator import itemgetter
-ff=open('E:/P3HT-dopant.txt','w')
+ff=open('E:/P3HT-dopant.txt','w')  # change
 
 def finddistance(x1,y1,z1,x2,y2,z2):
     x1,y1,z1,x2,y2,z2=float(x1),float(y1),float(z1),float(x2),float(y2),float(z2)
@@ -28,8 +28,8 @@ def extractxyz(line,residue):
     f=float(line[5-m])
     return a,b,c,d,e,f
         
-residue_extract='P7F6'
-residue_extract_2='ZBZ8'
+residue_extract='P7F6' #change
+residue_extract_2='ZBZ8' #change
 residue_1=open('E:/'+residue_extract+'.txt','w')
 myfile=open('E:/npt0.gro','r')
 for line in myfile:
@@ -68,3 +68,32 @@ for i,line_1 in enumerate(residue_read):
         coor,S,loc=[],[],[]
         a1==aa
         coor.append((d1,e1,f1))
+
+a='394'# what is the first index
+mydata1,mydata2, mydata3=[],[],[]
+ff=open('E:/P3HT-dopant.txt','r')  #change
+ff2=open('E:/P3HT-dopant2.txt','w') #change
+for i,line in enumerate(ff):
+    line=line.split()
+    dopant=line[0]
+    polymer=line[1]
+    dis=line[2]
+    print(line)
+    if a==dopant:
+        mydata1.append(float(dis))
+        mydata2.append(line[0])
+        mydata3.append(line[1])
+    if a!=dopant:
+        d=min(mydata1)
+        dopant=mydata2[mydata1.index(d)]
+        polymer=mydata3[mydata1.index(d)]
+        ff2.write(str(dopant)+','+str(polymer)+','+str(d)+'\n')
+        print(str(dopant)+'  '+str(polymer)+'  '+str(d)+'\n')
+        mydata1,mydata2, mydata3=[],[],[]
+        mydata1.append(float(dis))
+        mydata2.append(line[0])
+        mydata3.append(line[1])
+        dopant=line[0]
+        a=dopant
+ff2.close()
+ff.close()
