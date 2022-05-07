@@ -1,6 +1,4 @@
 import numpy as np
-from operator import itemgetter
-ff=open('E:/P3HT-dopant.txt','w')  # change
 
 def finddistance(x1,y1,z1,x2,y2,z2):
     x1,y1,z1,x2,y2,z2=float(x1),float(y1),float(z1),float(x2),float(y2),float(z2)
@@ -27,73 +25,108 @@ def extractxyz(line,residue):
     e=float(line[4-m])
     f=float(line[5-m])
     return a,b,c,d,e,f
-        
-residue_extract='P7F6' #change
-residue_extract_2='ZBZ8' #change
-residue_1=open('E:/'+residue_extract+'.txt','w')
-myfile=open('E:/npt0.gro','r')
-for line in myfile:
-    line_s=line.split()
-    res_match=line_s[0][-4:]
-    if residue_extract==res_match:
-        residue_1.write(line.lstrip())
-residue_1.close()
 
-residue_read=open('E:/'+residue_extract+'.txt','r')
-coor,S,loc=[],[],[]
-for i,line_1 in enumerate(residue_read):
-    print(i)
-    a1,b1,c1,d1,e1,f1=extractxyz(line_1,residue_extract)
-    if i==0:
-        aa=a1
-    if a1==aa:
-        coor.append((d1,e1,f1))
-    if a1!=aa:  
-        myfile.seek(0)
-        for line_2 in myfile:
-            line_x=line_2.lstrip()
-            line_x=line_2.split()
-            if len(line_x)>=8:
-                match=line_x[0][-4:]
-                if residue_extract_2==match: #find polymer
-                    a2,b2,c2,d2,e2,f2=extractxyz(line_2,residue_extract_2)#polymer
-                    if b2[0]=='S':  # only look at S
-                        for xyz in coor:
-                            d=finddistance(xyz[0],xyz[1],xyz[2],d2,e2,f2)
-                            S.append(d)
-                            loc.append(a2)
-        dist=min(S)
-        Sminloc=loc[S.index(dist)]
-        ff.write(str(a1)+','+str(Sminloc)+','+str(dist)+'\n')
-        coor,S,loc=[],[],[]
-        a1==aa
-        coor.append((d1,e1,f1))
+def extract_relevant(file_w,file_r_itp,NTP,residue,itp1,itp2='None',itp3='None',itp4='None',itp5='None'): # match the aromatic ring
+    dopant_res=[]
+    file1=open(file_r_itp,'r') 
+    for i, dopant in enumerate(file1):
+        res0=dopant.split()[0]
+        res1=dopant.split()[1]
+        if res0==itp1:
+            dopant_res.append(res1)
+        if res0==itp2:
+            dopant_res.append(res1)
+        if res0==itp3:
+            dopant_res.append(res1)
+        if res0==itp4:
+            dopant_res.append(res1)
+        if res0==itp5:
+            dopant_res.append(res1)
+    file1.close()
+    file2=open(NPT,'r')
+    file3=open(file_w,'w')     
+    for line in file2:
+        line_s=line.split()
+        res_match=line_s[0][-4:]
+        if residue==res_match:
+            a,b,c,d,e,f=extractxyz(line,residue)
+            if b in dopant_res:
+                file3.write(line.lstrip())
+    file1.close()
+    file2.close()
+    file3.close()
+    return 
 
-a='394'# what is the first index
-mydata1,mydata2, mydata3=[],[],[]
-ff=open('E:/P3HT-dopant.txt','r')  #change
-ff2=open('E:/P3HT-dopant2.txt','w') #change
-for i,line in enumerate(ff):
-    line=line.split()
-    dopant=line[0]
-    polymer=line[1]
-    dis=line[2]
-    print(line)
-    if a==dopant:
-        mydata1.append(float(dis))
-        mydata2.append(line[0])
-        mydata3.append(line[1])
-    if a!=dopant:
-        d=min(mydata1)
-        dopant=mydata2[mydata1.index(d)]
-        polymer=mydata3[mydata1.index(d)]
-        ff2.write(str(dopant)+','+str(polymer)+','+str(d)+'\n')
-        print(str(dopant)+'  '+str(polymer)+'  '+str(d)+'\n')
-        mydata1,mydata2, mydata3=[],[],[]
-        mydata1.append(float(dis))
-        mydata2.append(line[0])
-        mydata3.append(line[1])
-        dopant=line[0]
-        a=dopant
-ff2.close()
-ff.close()
+def find_center(ff_dp,residue,ff1,number):
+    d1,e1,f1=[],[],[]
+    number=int(number)
+    ff=open(ff1,'w')
+    fff=open(ff_dp,'r')
+    for i,line in enumerate(fff): #6
+        if (i+1)%number!=0:
+            a,b,c,d,e,f=extractxyz(line,residue)
+            d1.append(float(d))
+            e1.append(float(e))
+            f1.append(float(f))
+        if (i+1)%number==0:
+            a,b,c,d,e,f=extractxyz(line,residue)
+            d1.append(float(d))
+            e1.append(float(e))
+            f1.append(float(f))
+            ff.write(str(a)+','+str(np.average(d1))+','+str(np.average(e1))+','+str(np.average(f1))+'\n')
+            d1,e1,f1=[],[],[]
+    ff.close()
+    fff.close()
+    return
+
+dopant_itp='E:/P3TT/dopant.txt'
+polymer_itp='E:/P3TT/polymer.txt'        
+residue_extract_1='P7F6'
+residue_extract_2='ERVD'  #
+ff_dopant='E:/P3TT/'+residue_extract_1+'.txt'  #
+ff_polymer='E:/P3TT/'+residue_extract_2+'.txt'  #
+ff_dopant2='E:/P3TT/'+residue_extract_1+'_2.txt'  #
+ff_polymer2='E:/P3TT/'+residue_extract_2+'_2.txt'  #
+NPT='E:/P3TT/npt.gro'   #
+
+extract_relevant(ff_dopant,dopant_itp,NPT,residue_extract_1,'CAro')  #6
+extract_relevant(ff_polymer,polymer_itp,NPT,residue_extract_2,'CAro','S')  #5
+find_center(ff_dopant,residue_extract_1,ff_dopant2,6)
+find_center(ff_polymer,residue_extract_2,ff_polymer2,5)
+mydis,mya=[],[]
+myfile=open(ff_polymer,'r')
+myfile2=open("E:/P3TT/min-dopant-P3TT",'w')
+
+
+file = open(ff_polymer, 'r')
+line_count = 0
+for line in file:
+    if line != "\n":
+        line_count += 1
+file.close() 
+
+for i, line_1 in enumerate(open(ff_dopant,'r')):
+    print(i+1)
+    ii=0
+    a1,b1,c1,x1,y1,z1=extractxyz(line_1,residue_extract_1)      
+    for line_2 in myfile:
+        if (i+1)%6!=0:
+            a2,b2,c2,x2,y2,z2=extractxyz(line_2,residue_extract_2)
+            dis=finddistance(x1,y1,z1,x2,y2,z2)
+            mydis.append(dis)
+            mya.append([a1,a2])
+        if (i+1)%6==0:
+           a2,b2,c2,x2,y2,z2=extractxyz(line_2,residue_extract_2)
+           dis=finddistance(x1,y1,z1,x2,y2,z2)
+           mydis.append(dis)
+           mya.append([a1,a2]) 
+           ii+=1
+           if ii==line_count:
+               dist=min(mydis)
+               print(dist)
+               Sminloc=mya[mydis.index(dist)]
+               myfile2.write(str(Sminloc)+','+str(dist)+'\n')
+               mydis,mya=[],[]
+    myfile.seek(0)
+myfile.close()
+myfile2.close()
