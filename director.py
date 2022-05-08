@@ -1,49 +1,44 @@
+import pandas as pd
 import numpy as np
+from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-
-
-def func(x,s,u,c):  # defination of a function
-    a=(1/(s*np.sqrt(2*np.pi)))
-    b=(x-u)/s
-    g=a*np.exp(-0.5*b**2)
-    return g*c
-
-def drawgraph(func,x,y):
-    popt, pcov = curve_fit(func, x, y)                                                             
-    predicted=func(x, *popt) 
-    r=np.corrcoef(y, predicted)
-    r2=r[0][1]**2
-    print('coefficient of determination:', r2)
-    ii=1
-    for i in popt:
-        print(i," ", ii ,"parameter")
-        ii+=1   
-    return popt, r2
-
-xdata=[]
-ydata=[]
-filepath='E:/P3TT/gaussian.txt'
-with open(filepath,'r') as f:
-    for i,line in enumerate(f):
-        x=float(line.split()[0])
-        y=float(line.split()[1]) # conversion eV to KJ/mol
-        xdata.append(x)
-        ydata.append(y)
-xdata=np.asarray(xdata)
-ydata=np.asarray(ydata)
-
-fig, ax = plt.subplots(figsize=(12, 6))
-
-    
-plt.scatter(xdata,ydata)       
-newx=np.linspace(0.25,0.55,100)
-
-popt, r2=drawgraph(func,xdata,ydata)
-
-plt.plot(newx, func(newx, *popt),color='orange',label='best fit') 
-f=open('E:/P3TT/gaussian2.txt','w')
-yy=func(newx, *popt)
-for xx in newx:
-    f.write(str(xx)+','+str(yy[0])+'\n')
-f.close()
+from mpl_toolkits.mplot3d import Axes3D
+import random as rd
+wf=open('E:/P3HT/director_dist.txt','w')
+mydataset = open('E:/P3HT/ZBZ8_2.txt','r')
+a,x,y,z,angle0,S0=[],[],[],[],[],[]
+for i,line in enumerate(mydataset):
+    line=line.split(',')
+    a=int(line[0])
+    if (i+1)%10!=0:
+        x.append(float(line[1]))
+        y.append(float(line[2]))
+        z.append(float(line[3].strip('\n')))
+    if (i+1)%10==0:
+        x.append(float(line[1]))
+        y.append(float(line[2]))
+        z.append(float(line[3].strip('\n')))
+        coords = np.array((x, y, z)).T
+        pca = PCA(n_components=1)
+        pca.fit(coords)
+        direction_vector = pca.components_
+        # print(direction_vector)
+        vector_1 =[1,0,0]
+        vector_2 =[direction_vector[0][0],direction_vector[0][1],direction_vector[0][2]]
+        unit_vector_1 = vector_1 / np.linalg.norm(vector_1)
+        unit_vector_2 = vector_2 / np.linalg.norm(vector_2)
+        dot_product = np.dot(unit_vector_1, unit_vector_2)
+        angle = np.arccos(dot_product)
+        S=(3*np.cos(angle)*np.cos(angle)-1)/2
+        S0.append(S)
+        angle0.append((angle/np.pi)*180)
+        x,y,z=[],[],[]
+bins=[i*10 for i in range(19)]
+aa,bb,cc=plt.hist(angle0,bins, density = True)
+plt.show()
+print(np.mean(S0))
+for i in range(18):
+    wf.write(str(5+i*10)+','+str(aa[i])+'\n')
+    i+=1
+wf.write(str(np.mean(S0)))
+wf.close()
