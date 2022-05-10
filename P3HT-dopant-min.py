@@ -79,15 +79,15 @@ def find_center(ff_dp,residue,ff1,number):
     fff.close()
     return
 
-dopant_itp='E:/P3TT/dopant.txt'
-polymer_itp='E:/P3TT/polymer.txt'        
+dopant_itp='E:/PHT/dopant.txt'
+polymer_itp='E:/PHT/polymer.txt'        
 residue_extract_1='P7F6'
-residue_extract_2='ERVD'  #
-ff_dopant='E:/P3TT/'+residue_extract_1+'.txt'  #
-ff_polymer='E:/P3TT/'+residue_extract_2+'.txt'  #
-ff_dopant2='E:/P3TT/'+residue_extract_1+'_2.txt'  #
-ff_polymer2='E:/P3TT/'+residue_extract_2+'_2.txt'  #
-NPT='E:/P3TT/npt.gro'   #
+residue_extract_2='U9EL'  #
+ff_dopant='E:/PHT/'+residue_extract_1+'.txt'  #
+ff_polymer='E:/PHT/'+residue_extract_2+'.txt'  #
+ff_dopant2='E:/PHT/'+residue_extract_1+'_2.txt'  #
+ff_polymer2='E:/PHT/'+residue_extract_2+'_2.txt'  #
+NPT='E:/PHT/npt.gro'   #
 
 extract_relevant(ff_dopant,dopant_itp,NPT,residue_extract_1,'CAro')  #6
 extract_relevant(ff_polymer,polymer_itp,NPT,residue_extract_2,'CAro','S')  #5
@@ -95,7 +95,7 @@ find_center(ff_dopant,residue_extract_1,ff_dopant2,6)
 find_center(ff_polymer,residue_extract_2,ff_polymer2,5)
 mydis,mya=[],[]
 myfile=open(ff_polymer,'r')
-myfile2=open("E:/P3TT/min-dopant-P3TT",'w')
+myfile2=open("E:/PHT/min-dopant-P3HT-withS",'w')
 
 
 file = open(ff_polymer, 'r')
@@ -105,28 +105,46 @@ for line in file:
         line_count += 1
 file.close() 
 
-for i, line_1 in enumerate(open(ff_dopant,'r')):
+
+f=open('E:/PHT/ring.txt','r')  #
+flines=f.readlines()
+
+file2 = open('E:/PHT/ring.txt', 'r')  #
+line_count2 = 0
+for line in file2:
+    if line != "\n":
+        line_count2 += 1
+file2.close() 
+
+
+for i, line_1 in enumerate(open(ff_dopant2,'r')):
     print(i+1)
     ii=0
-    a1,b1,c1,x1,y1,z1=extractxyz(line_1,residue_extract_1)      
+    xyz1=line_1[i].split(',')  
+    a1,x1,y1,z1=xyz1[0],xyz1[1],xyz1[2],xyz1[3].strip('\n')    
     for line_2 in myfile:
         if (i+1)%6!=0:
             a2,b2,c2,x2,y2,z2=extractxyz(line_2,residue_extract_2)
             dis=finddistance(x1,y1,z1,x2,y2,z2)
             mydis.append(dis)
-            mya.append([a1,a2])
+            mya.append([a1,a2,b2])
         if (i+1)%6==0:
            a2,b2,c2,x2,y2,z2=extractxyz(line_2,residue_extract_2)
            dis=finddistance(x1,y1,z1,x2,y2,z2)
            mydis.append(dis)
-           mya.append([a1,a2]) 
+           mya.append([a1,a2,b2]) 
            ii+=1
            if ii==line_count:
                dist=min(mydis)
-               print(dist)
                Sminloc=mya[mydis.index(dist)]
-               myfile2.write(str(Sminloc)+','+str(dist)+'\n')
+               for iii in range(line_count2):
+                   if Sminloc[2] in flines[iii]:
+                      extra= flines[iii]
+               print(str(Sminloc[0])+','+str(Sminloc[1])+','+str(Sminloc[2])+','+str(dist)+','+str(extra))
+               myfile2.write(str(Sminloc[0])+','+str(Sminloc[1])+','+str(Sminloc[2])+','+str(dist)+','+str(extra))
                mydis,mya=[],[]
     myfile.seek(0)
 myfile.close()
 myfile2.close()
+
+    
