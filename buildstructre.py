@@ -8,6 +8,8 @@ from shutil import copyfile
 import numpy as np
 import math
 import os
+import io
+import sys
 
 def check_run_status():
     time.sleep(10)
@@ -23,14 +25,14 @@ def check_run_status():
         output = process.stdout 
     return True
 
-def no_moplecule(file):
+def no_moplecule(file,res):
     filepath=os.getcwd()+'/'+str(file)+'.gro'
     a_file=open(filepath, 'r')
     lines=a_file.readlines()
-    third=int(lines[2].split('CN2')[0])
-    last_lines=lines[-2:-1]
-    last_lines=int(last_lines[0].split('C')[0])+1-third   #need to change if it starts with zero, u need to add, sometimes it is zero need program to ensure that
-    return last_lines
+    first=lines[78111].split()[0].split(res)[0]    ###############change
+    last=lines[-2:-1][0].split()[0].split(res)[0]
+    number=int(last)-int(first)+1    
+    return number
 
 def top(file, no_mol,res):
    filepath='./'+str(file)+'.top'
@@ -39,6 +41,29 @@ def top(file, no_mol,res):
    txt=res+'   '+str(no_mol)  # need to find way to get extract poroper name
    hs.write(txt)
    hs.close()
+
+
+def make_sh_file1(code):
+    sh= open('./compile.sh','w')
+    sh.write('module load gromacs/gromacs-2021.2'+'\n')
+    sh.write(code)
+    sh.close()
+    filename = './gromacs.err'
+    with io.open(filename, 'wb') as writer, io.open(filename, 'rb', 1) as reader:
+        process = subprocess.Popen('source compile.sh'+'; env -0',shell=True, executable='/bin/bash',stdout=writer)
+        while process.poll() is None:
+            sys.stdout.write(str(reader.read()))
+            time.sleep(5)
+        # Read the remaining
+        sys.stdout.write(str(reader.read()))
+
+def make_sh_file(code):
+    sh= open('./compile.sh','w')
+    sh.write('module load gromacs/gromacs-2021.2'+'\n')
+    sh.write(code)
+    sh.close()
+    filename = './gromacs.err'
+    output = subprocess.check_output('source compile.sh'+'; env -0',shell=True, executable='/bin/bash')
 
 def compilee(txt,job):  #must be string job with extension
    copyfile('./compile.sh', './'+job)
@@ -75,25 +100,28 @@ def howmanyadded():
             addedm=int(line.split()[1])
     return addedm
 
-a_file=open('./CN2.pdb', 'r')
-lines=a_file.readlines()
-residue=lines[4].split()[3]
-compilee('gmx_mpi editconf -f '+residue+'.pdb -o CN2.gro','convert.sh')
-compilee('mpirun gmx_mpi editconf -f '+residue+'.gro -o '+residue+'-O.gro -box 10 10 10 -center 5 5 5','box.sh')
-compilee('gmx_mpi insert-molecules -f '+residue+'-O.gro -ci '+residue+'.gro -nmol 10000 -rot xyz -o '+residue+'-b.gro','insert-start.sh')
 
-file=residue+'-b'  # residue must be only 3 letter
-for i in range(10):
-    no_mol=no_moplecule(file)  ######
+file='DEPEPO-box' # residue must be only 3 letter
+residue='J8JX'
+for i in range(20):
+    no_mol=no_moplecule(file,residue)  ######
     top(file, no_mol,residue)
     time.sleep(5)
-    compilee('gmx_mpi grompp -f minim.mdp -c '+residue+'-b.gro -r '+residue+'-b.gro -p '+residue+'-b.top -o em.tpr -maxwarn 4','em.sh')
-    run('mpirun -np 32 gmx_mpi mdrun -v -deffnm em','em-run.sh')  #might want to know no processor
-    compilee('gmx_mpi grompp -f nvt.mdp -c em.gro -r em.gro -p '+residue+'-b.top -o nvt.tpr -maxwarn 3','nvt.sh')
-    run('mpirun -np 32 gmx_mpi mdrun -v -deffnm nvt','nvt-run.sh') 
-    compilee('gmx_mpi grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p CN2-b.top -o npt.tpr -maxwarn 3','npt.sh')
-    run('mpirun -np 32 gmx_mpi mdrun -v -deffnm npt','npt-run.sh') 
-    compilee('gmx_mpi insert-molecules -f nvt.gro -ci '+residue+'.gro -nmol 50000 -rot xyz -o '+residue+'-b.gro','insert.sh')
-    m=howmanyadded()
-    if m<1:
-        exit()
+    make_sh_file('gmx_mpi grompp -f minim.mdp -c '+file+'.gro -r '+file+'.gro -p '+file+'.top -o em.tpr -maxwarn 4')
+    time.sleep(5)
+    make_sh_file('mpirun gmx_mpi mdrun -v -deffnm em -ntomp 1')
+    time.sleep(5)
+    make_sh_file('gmx_mpi grompp -f nvt.mdp -c em.gro -r em.gro -p topol.top -o nvt.tpr -maxwarn 3')
+    time.sleep(5)
+    make_sh_file('mpirun gmx_mpi mdrun -v -deffnm nvt -ntomp 1')
+    time.sleep(5)
+    make_sh_file('gmx_mpi insert-molecules -f nvt.gro -ci '+residue+'.gro -nmol 50000 -rot xyz -o '+file+'.gro')
+    time.sleep(5)
+#    compilee('gmx_mpi grompp -f nvt.mdp -c em.gro -r em.gro -p '+residue+'-b.top -o nvt.tpr -maxwarn 3','nvt.sh')
+#    run('mpirun -np 32 gmx_mpi mdrun -v -deffnm nvt','nvt-run.sh') 
+#    compilee('gmx_mpi grompp -f npt.mdp -c nvt.gro -r nvt.gro -t nvt.cpt -p CN2-b.top -o npt.tpr -maxwarn 3','npt.sh')
+#    run('mpirun -np 32 gmx_mpi mdrun -v -deffnm npt','npt-run.sh') 
+#    compilee('gmx_mpi insert-molecules -f nvt.gro -ci '+residue+'.gro -nmol 50000 -rot xyz -o '+residue+'-b.gro','insert.sh')
+#    m=howmanyadded()
+#    if m<2:
+#        exit()
