@@ -104,3 +104,4 @@ for i,line in enumerate(myfile_1):
        mydatad.append(d)
        position.append([a,aa])
        a0=a
+myfile_4.close()
