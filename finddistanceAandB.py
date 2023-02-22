@@ -103,3 +103,4 @@ for i,line in enumerate(myfile_1):
        d=finddistance(xx,yy,zz,x,y,z)
        mydatad.append(d)
        position.append([a,aa])
+       a0=a
