@@ -1,65 +1,51 @@
 import numpy as np
 from scipy.spatial import KDTree
-def parse_gro_file_all_atoms(file_path):
+
+def parse_gro_file(file_path):
+    atoms, molecules_with_f = [], {}
+    molecule_info = {}  # Tracks whether each molecule contains 'F'
+
     with open(file_path, 'r') as file:
         lines = file.readlines()
-
-    # Data structure to hold all atom information
-    atoms = []
 
     for line in lines[2:-1]:
         residue_number = int(line[:5].strip())
         residue_name = line[0:10].strip()
         atom_name = line[10:15].strip()
-        atom_number = int(line[15:20].strip())
-        x = float(line[20:28].strip())
-        y = float(line[28:36].strip())
-        z = float(line[36:44].strip())
-        
-        atoms.append(((residue_number, residue_name, atom_name, atom_number), np.array([x, y, z])))
+        x, y, z = map(float, line[20:44].strip().split())
 
-    return atoms
-file_path='D:/shafiq/7/nvt4.gro'
-# Parse the file to get all atom data
-all_atom_data = parse_gro_file_all_atoms(file_path)
+        atoms.append((residue_number, residue_name, atom_name, np.array([x, y, z])))
+        if 'F' in atom_name:
+            molecules_with_f[residue_number] = True
+        molecule_info[residue_number] = molecule_info.get(residue_number, False) or 'F' in atom_name
 
-# KDTree for all atoms
-all_coordinates = np.array([data[1] for data in all_atom_data])
-all_kd_tree = KDTree(all_coordinates)
+    # Separate atoms based on whether they're in molecules containing 'F'
+    target_atoms = [atom for atom in atoms if molecule_info[atom[0]]]
+    return target_atoms, molecules_with_f
 
-# Now find the shortest distances from 'F' atoms to any other atom in different molecules
-def find_shortest_distances_all_atoms(f_atom_data, all_atom_data, all_kd_tree):
-    shortest_distances_all = []
+def find_shortest_distances(target_atoms, molecules_with_f):
+    # Build KDTree for target atoms
+    kd_tree = KDTree([atom[3] for atom in target_atoms if atom[2].startswith('F') and atom[0] in molecules_with_f])
 
-    for i, ((residue_number_i, residue_name_i, atom_name_i, atom_number_i), coord_i) in enumerate(f_atom_data):
-        if 'F' not in atom_name_i:  # Skip atoms that don't contain 'F'
-            continue
+    results = []
+    for atom in target_atoms:
+        residue_number, residue_name, atom_name, coordinates = atom
+        if atom_name.startswith('F') and residue_number in molecules_with_f:
+            # Perform the query with k=2 to find the nearest non-self neighbor
+            distances, index = kd_tree.query(coordinates, k=2)
+            # Ensure we're accessing the second closest distance since the first is the point itself
+            # Convert the second closest distance to float for safety
+            if len(distances) > 1 and len(index) > 1:  # Check if we have a second distance
+                distance = float(distances[1])  # The actual nearest neighbor distance
+                nearest_atom = target_atoms[index[1]]  # Adjust index access as needed
+                # Ensure the nearest atom is from a different molecule
+                if nearest_atom[0] != residue_number:
+                    results.append({
+                        'from_atom': atom_name,
+                        'from_residue': residue_name,
+                        'to_atom': nearest_atom[2],
+                        'to_residue': nearest_atom[1],
+                        'distance': distance
+                    })
 
-        # Query the KDTree for the nearest neighbor, excluding the atom itself
-        distance, index = all_kd_tree.query(coord_i, k=2)  # k=2 because the closest (first one) is the atom itself
-        # Ensure the nearest is from a different molecule by checking residue number
-        if all_atom_data[index[1]][0][0] != residue_number_i:
-            nearest_atom = all_atom_data[index[1]][0]
-            shortest_distances_all.append({
-                'from_atom': atom_name_i,
-                'from_residue': residue_name_i,
-                'to_atom': nearest_atom[2],
-                'to_residue': nearest_atom[1],
-                'distance': distance[1]  # distance[0] is the distance to itself, which is 0
-            })
-
-    return shortest_distances_all
-
-# Find the shortest distances for each 'F' atom to any other atom in a different molecule
-shortest_distances_all_atoms = find_shortest_distances_all_atoms(all_atom_data, all_atom_data, all_kd_tree)
-
-# Save the output to a text file
-output_file_path_all_atoms = 'D:/shafiq/7/shortest_distances_F_to_all_atoms.txt'
-
-with open(output_file_path_all_atoms, 'w') as file:
-    for distance_info in shortest_distances_all_atoms:
-        file.write(f"From Atom: {distance_info['from_atom']} ({distance_info['from_residue']}), "
-                   f"To Atom: {distance_info['to_atom']} ({distance_info['to_residue']}), "
-                   f"Distance: {distance_info['distance']:.3f}\n")
-
-output_file_path_all_atoms
+    return results
