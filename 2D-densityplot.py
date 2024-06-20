@@ -125,7 +125,7 @@ def calculate_angles(shortest_distances, molecule_centroids, filtered_molecule_c
         distances_with_angles.append((details[0], details[1], molecule2, angle, closest_centroid1, closest_centroid2))
     return distances_with_angles
 
-def proceed(num_files, base_path, ids_list, ids_list2, ids_list_planes, a, a2, bounds):
+def proceed(num_files, base_path, ids_list, ids_list2, ids_list_planes,ids_list_planes2, a, a2, bounds):
     data_DistancevsAngle = pd.DataFrame()
 
     for i in range(1, num_files + 1):
@@ -142,7 +142,7 @@ def proceed(num_files, base_path, ids_list, ids_list2, ids_list_planes, a, a2, b
         shortest_distances = calculate_shortest_distances(molecule_centroids, filtered_molecule_centroids2)
         
         normal_vectors_planes = get_normal_vectors(data, ids_list_planes)
-        normal_vectors_ids2 = get_normal_vectors(data, ids_list2)
+        normal_vectors_ids2 = get_normal_vectors(data, ids_list_planes2)
         
         distances_with_angles = calculate_angles(shortest_distances, molecule_centroids, filtered_molecule_centroids2, normal_vectors_planes, normal_vectors_ids2)
         
@@ -182,13 +182,15 @@ bounds = [(0.5, 16.43), (0.5, 9.32), (0.5, 4.25)]
 a2 = 41
 m=77112
 # Define the atom ids for centroid calculations
-ids_list2 = [[20+m,22+m,37+m,27+m,36+m,28+m,30+m,32+m,34+m]]  # DOPANT
+ids_list2 = [[20+m,22+m,37+m,27+m,36+m,28+m,30+m,32+m,34+m,10+m,11+m,13+m,15+m,16+m,18+m,5+m,6+m,2+m]]  # DOPANT
 # 10+m,11+m,13+m,15+m,16+m,18+m,5+m,6+m,2+m
-base_path = 'C:/Users/Woon/Documents/DICC/suhao/straight/'
-num_files = 2  # Number of file pairs
+
+ids_list_planes2 = [[20+m,22+m,37+m,27+m,36+m,28+m,30+m,32+m,34+m]] #dopant plane
+base_path = 'E:/suhao/2/straight/'
+num_files = 1  # Number of file pairs
 
 # Initialize lists to store all distances and angles
-data_DistancevsAngle=proceed(num_files, base_path, ids_list, ids_list2, ids_list_planes, a, a2, bounds)
+data_DistancevsAngle=proceed(num_files, base_path, ids_list, ids_list2, ids_list_planes,ids_list_planes2, a, a2, bounds)
 ## Create a jointplot with KDE and marginal histograms
 sns.set(style="whitegrid", palette="muted")
 
