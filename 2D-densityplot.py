@@ -182,12 +182,12 @@ bounds = [(0.5, 16.43), (0.5, 9.32), (0.5, 4.25)]
 a2 = 41
 m=77112
 # Define the atom ids for centroid calculations
-ids_list2 = [[20+m,22+m,37+m,27+m,36+m,28+m,30+m,32+m,34+m,10+m,11+m,13+m,15+m,16+m,18+m,5+m,6+m,2+m]]  # DOPANT
-# 10+m,11+m,13+m,15+m,16+m,18+m,5+m,6+m,2+m
+ids_list2 = [[20+m,22+m,37+m,27+m,36+m,28+m,30+m,32+m,34+m, 10+m,11+m,13+m,15+m,16+m,18+m,5+m,6+m,2+m]]  # DOPANT
+
 
 ids_list_planes2 = [[20+m,22+m,37+m,27+m,36+m,28+m,30+m,32+m,34+m]] #dopant plane
 base_path = 'E:/suhao/2/straight/'
-num_files = 1  # Number of file pairs
+num_files = 26  # Number of file pairs
 
 # Initialize lists to store all distances and angles
 data_DistancevsAngle=proceed(num_files, base_path, ids_list, ids_list2, ids_list_planes,ids_list_planes2, a, a2, bounds)
@@ -223,11 +223,11 @@ sns.kdeplot(
 )
 
 # Adjust titles and labels
-j.set_axis_labels('Shortest Distance', 'Angle (degrees)', fontsize=12)
-plt.suptitle('Kernel Density Estimation with Marginal Histograms\nfor Shortest Distances and Corresponding Angles', y=1.02, fontsize=16)
+j.set_axis_labels('Shortest Distance (nm)', 'Angle (degrees)', fontsize=20)
+# plt.suptitle('Kernel Density Estimation with Marginal Histograms\nfor Shortest Distances and Corresponding Angles', y=1.02, fontsize=16)
 
 # Customize the plot appearance
-j.ax_joint.tick_params(labelsize=10)
+j.ax_joint.tick_params(labelsize=16)
 j.ax_marg_x.tick_params(labelsize=10)
 j.ax_marg_y.tick_params(labelsize=10)
 j.ax_joint.grid(True, linestyle='--', alpha=0.7)
