@@ -59,7 +59,101 @@ def get_normal_vectors(data, ids_list):
         normal_vectors.append(normal_vector)
     return normal_vectors
 
+def read_and_modify_file(input_file_path, output_file_path):
+    with open(input_file_path, 'r') as file:
+        lines = file.readlines()[2:-1]
+    
+    with open(output_file_path, 'w') as outfile:
+        for line in lines:
+            col1 = line[:4].strip()
+            col2 = col1 + line[4:10].strip()
+            col3 = line[10:15].strip()
+            col4 = line[15:20].strip()
+            col5 = float(line[20:28].strip())
+            col6 = float(line[28:36].strip())
+            col7 = float(line[36:44].strip())
+            output_line = f"{col2}\t{col3}\t{col4}\t{col5:.3f}\t{col6:.3f}\t{col7:.3f}\n"
+            outfile.write(output_line)
 
+def parse_data_from_file(filename):
+    data = []
+    with open(filename, 'r') as file:
+        for line in file:
+            parts = line.strip().split()
+            if len(parts) >= 6:
+                molecule_name = parts[0]
+                residue = parts[1]
+                atom_id = int(parts[2])
+                x, y, z = map(float, parts[3:6])
+                data.append([molecule_name, residue, atom_id, x, y, z])
+    return np.array(data, dtype=object)
+
+def calculate_molecule_centroids(data, ids_list, num_units, unit_size):
+    centroids = {}
+    for n in range(num_units):
+        start_id = n * unit_size
+        for ids in ids_list:
+            ids = [id_ + start_id for id_ in ids]
+            points = get_points(data, ids)
+            centroid = calculate_centroid(points)
+            molecule_name = data[np.isin(data[:, 2], ids)][0, 0]
+            if molecule_name not in centroids:
+                centroids[molecule_name] = []
+            centroids[molecule_name].append(centroid)
+    return centroids
+
+def filter_edge_effects(molecule_centroids, bounds):
+    filtered_centroids = {}
+    for molecule_name, centroids in molecule_centroids.items():
+        filtered = [centroid for centroid in centroids if all(bounds[i][0] <= centroid[i] <= bounds[i][1] for i in range(3))]
+        if filtered:
+            filtered_centroids[molecule_name] = filtered
+    return filtered_centroids
+
+def calculate_shortest_distances(molecule_centroids, filtered_molecule_centroids2):
+    return find_shortest_distances(molecule_centroids, filtered_molecule_centroids2)
+
+def calculate_angles(shortest_distances, molecule_centroids, filtered_molecule_centroids2, normal_vectors_planes, normal_vectors_ids2):
+    distances_with_angles = []
+    for molecule2, details in shortest_distances.items():
+        closest_centroid1, closest_centroid2 = details[2]
+        plane_index1 = [i for i, centroid in enumerate(molecule_centroids[details[1]]) if np.array_equal(centroid, closest_centroid1)][0]
+        plane_index2 = [i for i, centroid in enumerate(filtered_molecule_centroids2[molecule2]) if np.array_equal(centroid, closest_centroid2)][0]
+        normal_vector1 = normal_vectors_planes[plane_index1]
+        normal_vector2 = normal_vectors_ids2[plane_index2]
+        angle = calculate_angle(normal_vector1, normal_vector2)
+        distances_with_angles.append((details[0], details[1], molecule2, angle, closest_centroid1, closest_centroid2))
+    return distances_with_angles
+
+def proceed(num_files, base_path, ids_list, ids_list2, ids_list_planes, a, a2, bounds):
+    data_DistancevsAngle = pd.DataFrame()
+
+    for i in range(1, num_files + 1):
+        input_file_path = f'{base_path}frame_{i}.gro'
+        output_file_path = f'{base_path}frame_{i}-modified.gro'
+
+        read_and_modify_file(input_file_path, output_file_path)
+        data = parse_data_from_file(output_file_path)
+
+        molecule_centroids = calculate_molecule_centroids(data, ids_list, 36, a)
+        molecule_centroids2 = calculate_molecule_centroids(data, ids_list2, 180, a2)
+        
+        filtered_molecule_centroids2 = filter_edge_effects(molecule_centroids2, bounds)
+        shortest_distances = calculate_shortest_distances(molecule_centroids, filtered_molecule_centroids2)
+        
+        normal_vectors_planes = get_normal_vectors(data, ids_list_planes)
+        normal_vectors_ids2 = get_normal_vectors(data, ids_list2)
+        
+        distances_with_angles = calculate_angles(shortest_distances, molecule_centroids, filtered_molecule_centroids2, normal_vectors_planes, normal_vectors_ids2)
+        
+        distances = [details[0] for details in distances_with_angles]
+        angles = [details[3] if details[3] <= 90 else 180 - details[3] for details in distances_with_angles]
+
+        df_to_append = pd.DataFrame({'Shortest Distance': distances, 'Angle': angles})
+        data_DistancevsAngle = pd.concat([data_DistancevsAngle, df_to_append], ignore_index=True)
+        
+    return data_DistancevsAngle
+    
 # Number of atoms in each monomer unit
 a = 2142
 
@@ -81,144 +175,20 @@ ids_list_planes = [
     [565, 571, 580], [605, 602, 619], [635, 641, 650], [684, 690, 673]
 ] #monomer unit center
 
+#remove edge effect
+bounds = [(0.5, 16.43), (0.5, 9.32), (0.5, 4.25)]
+
 # Number of atoms in dopant
 a2 = 41
 m=77112
 # Define the atom ids for centroid calculations
 ids_list2 = [[20+m,22+m,37+m,27+m,36+m,28+m,30+m,32+m,34+m]]  # DOPANT
 
-
 base_path = 'C:/Users/Woon/Documents/DICC/suhao/straight/'
 num_files = 2  # Number of file pairs
 
-
 # Initialize lists to store all distances and angles
-all_distances = []
-all_angles = []
-data_DistancevsAngle=[]
-# Loop through each file pair
-for i in range(1, num_files + 1):
-    file1 = f'{base_path}frame_{i}.gro'
-    output_file_path = f'{base_path}frame_{i}-modified.gro'
-    # Read the data from the file
-    input_file_path = file1
-    # Read the entire file into a list of lines
-    with open(input_file_path, 'r') as file:
-        lines = file.readlines()  
-    lines = lines[2:-1]
-    
-    with open(output_file_path, 'w') as outfile:
-        for line in lines:
-                # Extract and modify data from each line
-                col1 = line[:4].strip()
-                col2 = col1 + line[4:10].strip()
-                col3 = line[10:15].strip()
-                col4 = line[15:20].strip()
-                col5 = float(line[20:28].strip())
-                col6 = float(line[28:36].strip())
-                col7 = float(line[36:44].strip())
-                # Prepare the string to write to the output file
-                output_line = f"{col2}\t{col3}\t{col4}\t{col5:.3f}\t{col6:.3f}\t{col7:.3f}\n"
-                outfile.write(output_line)
-
-    filename = output_file_path   #polymer
-
-    data = []
-    with open(filename, 'r') as file:
-        for line in file:
-            parts = line.strip().split()
-            if len(parts) >= 6:
-                molecule_name = parts[0]
-                residue = parts[1]
-                atom_id = int(parts[2])
-                x, y, z = map(float, parts[3:6])
-                data.append([molecule_name, residue, atom_id, x, y, z])
-    
-    data = np.array(data, dtype=object)
-    # Initialize dictionary to store centroids for each molecule name
-    molecule_centroids = {}
-    
-    # Calculate centroids for each monomer unit in the polymer
-    for n in range(36):
-        start_id = n * a
-        
-        for ids in ids_list:
-            ids = [id_ + start_id for id_ in ids]
-            points = get_points(data, ids)
-            centroid = calculate_centroid(points)
-            
-            # Get molecule name for current monomer unit
-            molecule_name = data[np.isin(data[:, 2], ids)][0, 0]
-            
-            if molecule_name not in molecule_centroids:
-                molecule_centroids[molecule_name] = []
-            molecule_centroids[molecule_name].append(centroid)
-    
-    # Initialize dictionary to store centroids for each molecule name
-    molecule_centroids2 = {}
-    
-    # Calculate centroids for each monomer unit in the polymer
-    for n in range(180):  #there are 180 dopant molecules
-        start_id = n * a2
-    
-        for ids in ids_list2:
-            ids = [id_ + start_id for id_ in ids]
-            points = get_points(data, ids)
-            centroid = calculate_centroid(points)
-            
-            # Get molecule name for current monomer unit
-            molecule_name = data[np.isin(data[:, 2], ids)][0, 0]
-            
-            if molecule_name not in molecule_centroids:
-                molecule_centroids2[molecule_name] = []
-            molecule_centroids2[molecule_name].append(centroid)
-    
-    #Avoid edge effect
-    filtered_molecule_centroids2 = {}
-    for molecule_name, centroids in molecule_centroids2.items():
-        filtered_centroids = [centroid for centroid in centroids if (0.5 <= centroid[0] <= 16.43 and 0.5 <= centroid[1] <= 9.32 and 0.5 <= centroid[2] <= 4.25)]
-        if filtered_centroids:
-            filtered_molecule_centroids2[molecule_name] = filtered_centroids
-            
-    shortest_distances = find_shortest_distances(molecule_centroids, filtered_molecule_centroids2)
-    
-    distances = [details[0] for details in shortest_distances.values()]
-    
-    
-    # Get normal vectors for ids_list_planes and ids_list2
-    normal_vectors_planes = get_normal_vectors(data, ids_list_planes)
-    normal_vectors_ids2 = get_normal_vectors(data, ids_list2)
-    
-    # Calculate the angle between normal vectors for each pair of shortest distances
-    shortest_distances_with_angles = []
-    
-    for molecule2, details in shortest_distances.items():
-        # details[2] contains the closest centroid pair (centroid1, centroid2)
-        closest_centroid1 = details[2][0]
-        closest_centroid2 = details[2][1]
-        
-        # Find the corresponding planes' normal vectors
-        plane_index1 = [i for i, centroid in enumerate(molecule_centroids[details[1]]) if np.array_equal(centroid, closest_centroid1)][0]
-        plane_index2 = [i for i, centroid in enumerate(filtered_molecule_centroids2[molecule2]) if np.array_equal(centroid, closest_centroid2)][0]
-    
-        normal_vector1 = normal_vectors_planes[plane_index1]
-        normal_vector2 = normal_vectors_ids2[plane_index2]
-    
-        # Calculate the angle between the normal vectors
-        angle = calculate_angle(normal_vector1, normal_vector2)
-        shortest_distances_with_angles.append((details[0], details[1], molecule2, angle, closest_centroid1, closest_centroid2))
-    
-    # Assuming shortest_distances_with_angles is already populated
-    distances = [details[0] for details in shortest_distances_with_angles]
-    angles = [details[3] if details[3] <= 90 else 180 - details[3] for details in shortest_distances_with_angles]
-    # Adjust angles and create the list of adjusted angles
-    
-    if i==1:
-        data_DistancevsAngle = pd.DataFrame({'Shortest Distance': distances, 'Angle': angles})
-    else: 
-        to_append= pd.DataFrame({'Shortest Distance': distances, 'Angle': angles})
-        data_DistancevsAngle=pd.concat([data_DistancevsAngle, to_append], ignore_index=True)
-
+data_DistancevsAngle=proceed(num_files, base_path, ids_list, ids_list2, ids_list_planes, a, a2, bounds)
 ## Create a jointplot with KDE and marginal histograms
 sns.set(style="whitegrid", palette="muted")
 
