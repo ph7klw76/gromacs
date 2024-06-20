@@ -183,7 +183,7 @@ a2 = 41
 m=77112
 # Define the atom ids for centroid calculations
 ids_list2 = [[20+m,22+m,37+m,27+m,36+m,28+m,30+m,32+m,34+m]]  # DOPANT
-
+# 10+m,11+m,13+m,15+m,16+m,18+m,5+m,6+m,2+m
 base_path = 'C:/Users/Woon/Documents/DICC/suhao/straight/'
 num_files = 2  # Number of file pairs
 
