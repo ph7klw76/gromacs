@@ -4,3 +4,4 @@ A collection of automated submission and analysis files for simulating process-e
 things still need to fix for vacuum depsoition
 creating sh while auctomatically without a template. 
 
+https://github.com/yi-chai/crystal-simulation
