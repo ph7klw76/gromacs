@@ -3,7 +3,7 @@ from scipy.spatial import cKDTree
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def read_gro_file_with_masses(file_path, atomic_masses):
+def read_gro_file_with_masses(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()[2:]  # Skip the first two header lines
 
@@ -55,7 +55,6 @@ file_path = 'C:/Users/bomoh/Downloads/run3.gro'
 specific_carbon_labels = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 
                           'C11', 'C12', 'C13', 'C14', 'C15', 'C16', 'C17', 'C18', 'C19', 
                           'C20', 'C21', 'C22']
-atomic_masses = {'C': 12.01, 'H': 1.008, 'O': 15.999}  # Example atomic masses
 
 molecules = read_gro_file_with_masses(file_path, atomic_masses)
 kd_tree_distances = calculate_kd_tree_nearest_specific_carbon_distances(molecules, specific_carbon_labels)
