@@ -56,6 +56,6 @@ specific_carbon_labels = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 
                           'C11', 'C12', 'C13', 'C14', 'C15', 'C16', 'C17', 'C18', 'C19', 
                           'C20', 'C21', 'C22']
 
-molecules = read_gro_file_with_masses(file_path, atomic_masses)
+molecules = read_gro_file_with_masses(file_path)
 kd_tree_distances = calculate_kd_tree_nearest_specific_carbon_distances(molecules, specific_carbon_labels)
 plot_probability_density(kd_tree_distances, 'Probability Density of KD-Tree Nearest Specific Carbon Distances Between Molecules')
